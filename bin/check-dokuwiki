@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+: "${DOKUWIKI_SOURCE:?run this check through nix develop}"
+
+root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
+tmpdir=$(mktemp -d)
+trap 'rm -rf "$tmpdir"' EXIT
+
+cp -R "$DOKUWIKI_SOURCE"/. "$tmpdir/dokuwiki"
+chmod -R u+w "$tmpdir/dokuwiki"
+ln -s "$root" "$tmpdir/dokuwiki/lib/plugins/vpsadmindoc"
+
+rendered=$(
+  printf '%s\n' \
+    '<vpsadmin-nav id="member.public-keys.add">Public keys & more</vpsadmin-nav>' \
+    | php "$tmpdir/dokuwiki/bin/render.php"
+)
+
+expected='<span class="vpsadmindoc-nav" data-vpsadmin-doc-id="member.public-keys.add">Public keys &amp; more</span>'
+if [[ "$rendered" != *"$expected"* ]]; then
+  printf 'DokuWiki integration output did not contain expected annotation:\n%s\n' "$rendered" >&2
+  exit 1
+fi
+
+echo 'DokuWiki integration check passed'

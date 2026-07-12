@@ -1,0 +1,8 @@
+.vpsadmindoc-nav--invalid {
+    outline: 2px solid #c00;
+    outline-offset: 2px;
+}
+
+.vpsadmindoc-nav__warning {
+    color: #c00;
+}

@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+root=$(cd "$(dirname "$0")/.." && pwd)
+cd "$root"
+
+find . -type f -name '*.php' -print0 | sort -z | xargs -0 -n1 php -l
+php tests/run.php
+bin/check-dokuwiki

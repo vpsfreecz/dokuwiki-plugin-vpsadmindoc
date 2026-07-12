@@ -1,0 +1,7 @@
+base   vpsadmindoc
+author vpsFree.cz
+email  support@vpsfree.cz
+date   2026-07-12
+name   vpsAdmin documentation annotations
+desc   Annotates localized vpsAdmin navigation instructions with stable semantic IDs
+url    https://github.com/vpsfreecz/dokuwiki-plugin-vpsadmindoc
