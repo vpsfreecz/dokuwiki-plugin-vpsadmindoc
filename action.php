@@ -9,6 +9,7 @@ require_once __DIR__ . '/managed.php';
 class action_plugin_vpsadmindoc extends ActionPlugin
 {
     private const EDITOR_ACTIONS = ['edit', 'locked', 'preview', 'source'];
+    private const NEW_TAB_ATTRIBUTES = ' target="_blank" rel="noopener noreferrer"';
 
     public function register(EventHandler $controller): void
     {
@@ -39,7 +40,8 @@ class action_plugin_vpsadmindoc extends ActionPlugin
 
         $item = '<li><a href="' . hsc($managed['source']) . '"'
             . ' class="source urlextern vpsadmindoc-managed-source"'
-            . ' title="' . hsc($this->getLang('managed_source_tool')) . '">'
+            . ' title="' . hsc($this->getLang('managed_source_tool')) . '"'
+            . self::NEW_TAB_ATTRIBUTES . '>'
             . '<span>' . hsc($this->getLang('managed_source_tool')) . '</span>'
             . '</a></li>';
         $event->data['items'] = self::insertAfterEdit($event->data['items'], $item);
@@ -58,11 +60,16 @@ class action_plugin_vpsadmindoc extends ActionPlugin
             return;
         }
 
-        $source = '<a href="' . hsc($managed['source']) . '" class="urlextern">'
+        $source = '<a href="' . hsc($managed['source']) . '" class="urlextern"'
+            . self::NEW_TAB_ATTRIBUTES . '>'
             . hsc($this->getLang('managed_source_link')) . '</a>';
-        $test = '<a href="' . hsc($managed['test']) . '" class="urlextern">'
+        $test = '<a href="' . hsc($managed['test']) . '" class="urlextern"'
+            . self::NEW_TAB_ATTRIBUTES . '>'
             . hsc($this->getLang('managed_test_link')) . '</a>';
-        $warning = sprintf($this->getLang('managed_edit_warning'), $source, $test);
+        $guide = '<a href="' . hsc(wl($this->getLang('managed_guide_page'))) . '"'
+            . ' class="wikilink1"' . self::NEW_TAB_ATTRIBUTES . '>'
+            . hsc($this->getLang('managed_guide_link')) . '</a>';
+        $warning = sprintf($this->getLang('managed_edit_warning'), $source, $test, $guide);
 
         $event->data = '<div class="vpsadmindoc-managed-warning" role="alert">'
             . $warning . '</div>' . $event->data;

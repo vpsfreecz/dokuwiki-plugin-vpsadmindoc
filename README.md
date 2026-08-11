@@ -30,8 +30,10 @@ language mapping:
 
 The marker emits no XHTML. Its validated GitHub links are stored in page
 metadata and used to add a **Source on GitHub** page tool. DokuWiki editor and
-preview views also show a localized warning with links to the canonical source
-and automated test. The plugin never fetches repository content at runtime.
+preview views also show a localized notice with links to the source, automated
+test, and local editing guide. Repository links open in a new tab, as does the
+editing guide so that an open edit form is preserved. The plugin never fetches
+repository content at runtime.
 
 Only HTTPS `github.com` blob links are accepted. Invalid markers render a
 visible diagnostic and do not create toolbar or editor links. The standalone

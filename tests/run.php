@@ -11,17 +11,21 @@ namespace dokuwiki\Extension {
                     'invalid_id' => '[invalid vpsAdmin documentation ID]',
                     'invalid_managed' => '[invalid managed-page marker]',
                     'managed_source_tool' => 'Source on GitHub',
-                    'managed_source_link' => 'canonical source on GitHub',
+                    'managed_source_link' => 'source on GitHub',
                     'managed_test_link' => 'automated test',
-                    'managed_edit_warning' => 'This page is managed in a repository. Do not edit it directly in the KB; change the %s and verify the %s instead.',
+                    'managed_guide_page' => 'information:kb',
+                    'managed_guide_link' => 'Contributing to the Knowledge Base',
+                    'managed_edit_warning' => 'This page is managed in a repository and covered by an automated test. Manual edits made directly in the KB are not verified. See the %s, %s, and %s.',
                 ],
                 'cs' => [
                     'invalid_id' => '[neplatný identifikátor dokumentace vpsAdminu]',
                     'invalid_managed' => '[neplatná značka stránky spravované v repozitáři]',
                     'managed_source_tool' => 'Zdroj na GitHubu',
-                    'managed_source_link' => 'kanonický zdroj na GitHubu',
+                    'managed_source_link' => 'zdroj na GitHubu',
                     'managed_test_link' => 'automatický test',
-                    'managed_edit_warning' => 'Tato stránka je spravována v repozitáři. Neupravujte ji přímo v KB; změňte místo toho %s a ověřte %s.',
+                    'managed_guide_page' => 'informace:jak_psat',
+                    'managed_guide_link' => 'Jak přispívat do znalostní báze',
+                    'managed_edit_warning' => 'Tato stránka je spravována v repozitáři a pokryta automatickým testem. Ruční úpravy provedené přímo v KB nejsou ověřovány. Viz %s, %s a %s.',
                 ],
             ];
 
@@ -97,6 +101,11 @@ namespace {
         return $GLOBALS['testMetadata'] ?? null;
     }
 
+    function wl(string $id): string
+    {
+        return '/doku.php?id=' . rawurlencode($id);
+    }
+
     require dirname(__DIR__) . '/managed.php';
     require dirname(__DIR__) . '/syntax.php';
     require dirname(__DIR__) . '/syntax/managed.php';
@@ -115,6 +124,15 @@ namespace {
     {
         if (!str_contains($haystack, $needle)) {
             fwrite(STDERR, "$message\nMissing: " . var_export($needle, true)
+                . "\nActual: " . var_export($haystack, true) . "\n");
+            exit(1);
+        }
+    }
+
+    function assertNotContains(string $needle, string $haystack, string $message): void
+    {
+        if (str_contains($haystack, $needle)) {
+            fwrite(STDERR, "$message\nUnexpected: " . var_export($needle, true)
                 . "\nActual: " . var_export($haystack, true) . "\n");
             exit(1);
         }
@@ -272,6 +290,12 @@ namespace {
     );
     assertContains($sourceUrl, $toolsEvent->data['items']['vpsadmindoc_source'], 'source tool URL');
     assertContains('Source on GitHub', $toolsEvent->data['items']['vpsadmindoc_source'], 'source tool label');
+    assertContains('target="_blank"', $toolsEvent->data['items']['vpsadmindoc_source'], 'source tool opens in new tab');
+    assertContains(
+        'rel="noopener noreferrer"',
+        $toolsEvent->data['items']['vpsadmindoc_source'],
+        'source tool protects the opener'
+    );
 
     $GLOBALS['ACT'] = 'show';
     $contentEvent = new \dokuwiki\Extension\Event('<p>article</p>');
@@ -283,12 +307,40 @@ namespace {
     assertContains('vpsadmindoc-managed-warning', $contentEvent->data, 'editor warning is present');
     assertContains($sourceUrl, $contentEvent->data, 'editor warning links the source');
     assertContains($testUrl, $contentEvent->data, 'editor warning links the test');
+    assertContains(
+        '/doku.php?id=information%3Akb',
+        $contentEvent->data,
+        'editor warning links the English editing guide'
+    );
+    assertContains(
+        'Manual edits made directly in the KB are not verified.',
+        $contentEvent->data,
+        'editor warning explains that manual edits are unverified'
+    );
+    assertNotContains('Do not edit', $contentEvent->data, 'editor warning does not prohibit editing');
+    assertSame(3, substr_count($contentEvent->data, 'target="_blank"'), 'all editor links open in new tabs');
+    assertSame(
+        3,
+        substr_count($contentEvent->data, 'rel="noopener noreferrer"'),
+        'all editor links protect the opener'
+    );
 
     $GLOBALS['testLanguage'] = 'cs';
     $GLOBALS['ACT'] = 'preview';
     $czechEvent = new \dokuwiki\Extension\Event('<p>náhled</p>');
     $action->handleContentDisplay($czechEvent, null);
     assertContains('Tato stránka je spravována', $czechEvent->data, 'Czech preview warning is localized');
+    assertContains(
+        'Ruční úpravy provedené přímo v KB nejsou ověřovány.',
+        $czechEvent->data,
+        'Czech preview explains that manual edits are unverified'
+    );
+    assertContains(
+        '/doku.php?id=informace%3Ajak_psat',
+        $czechEvent->data,
+        'Czech preview links the localized editing guide'
+    );
+    assertNotContains('Neupravujte', $czechEvent->data, 'Czech preview does not prohibit editing');
 
     $GLOBALS['testMetadata'] = [];
     $unmanagedTools = new \dokuwiki\Extension\Event([
