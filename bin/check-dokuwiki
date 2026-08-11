@@ -13,6 +13,7 @@ ln -s "$root" "$tmpdir/dokuwiki/lib/plugins/vpsadmindoc"
 
 rendered=$(
   printf '%s\n' \
+    '<kb-managed source="https://github.com/vpsfreecz/vpsfree-kb-contracts/blob/master/contract/pages/manuals-vps-kvm.txt" test="https://github.com/vpsfreecz/vpsfree-kb-contracts/blob/master/tests/suite/kb/kvm.nix" />' \
     '<vpsadmin-nav id="member.public-keys.add">Public keys & more</vpsadmin-nav>' \
     | php "$tmpdir/dokuwiki/bin/render.php"
 )
@@ -20,6 +21,19 @@ rendered=$(
 expected='<span class="vpsadmindoc-nav" data-vpsadmin-doc-id="member.public-keys.add">Public keys &amp; more</span>'
 if [[ "$rendered" != *"$expected"* ]]; then
   printf 'DokuWiki integration output did not contain expected annotation:\n%s\n' "$rendered" >&2
+  exit 1
+fi
+if [[ "$rendered" == *'kb-managed'* || "$rendered" == *'vpsfree-kb-contracts'* ]]; then
+  printf 'managed-page marker unexpectedly rendered XHTML:\n%s\n' "$rendered" >&2
+  exit 1
+fi
+
+invalid=$(
+  printf '%s\n' '<kb-managed source="https://example.test/not-github" />' \
+    | php "$tmpdir/dokuwiki/bin/render.php"
+)
+if [[ "$invalid" != *'data-vpsadmin-doc-error="invalid-managed-page"'* ]]; then
+  printf 'invalid managed-page marker did not render a diagnostic:\n%s\n' "$invalid" >&2
   exit 1
 fi
 
