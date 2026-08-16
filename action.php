@@ -10,6 +10,7 @@ class action_plugin_vpsadmindoc extends ActionPlugin
 {
     private const EDITOR_ACTIONS = ['edit', 'locked', 'preview', 'source'];
     private const NEW_TAB_ATTRIBUTES = ' target="_blank" rel="noopener noreferrer"';
+    private const WARNING_TITLE_ID = 'vpsadmindoc-managed-warning-title';
 
     public function register(EventHandler $controller): void
     {
@@ -75,10 +76,28 @@ class action_plugin_vpsadmindoc extends ActionPlugin
         $guide = '<a href="' . hsc(wl($this->getLang('managed_guide_page'))) . '"'
             . ' class="wikilink1"' . self::NEW_TAB_ATTRIBUTES . '>'
             . hsc($this->getLang('managed_guide_link')) . '</a>';
-        $warning = sprintf($this->getLang('managed_edit_warning'), $source, $test, $guide);
+        $selector = '';
+        if (is_string($managed['test_selector'])) {
+            $selector = ' <code class="vpsadmindoc-managed-warning__selector">'
+                . hsc($managed['test_selector']) . '</code>';
+        }
 
-        $event->data = '<div class="vpsadmindoc-managed-warning" role="alert">'
-            . $warning . '</div>' . $event->data;
+        $event->data = '<div class="vpsadmindoc-managed-warning" role="alert"'
+            . ' aria-labelledby="' . self::WARNING_TITLE_ID . '">'
+            . '<span class="vpsadmindoc-managed-warning__icon" aria-hidden="true">&#9888;</span>'
+            . '<div class="vpsadmindoc-managed-warning__body">'
+            . '<strong class="vpsadmindoc-managed-warning__title" id="'
+            . self::WARNING_TITLE_ID . '">' . hsc($this->getLang('managed_edit_title'))
+            . '</strong>'
+            . '<p>' . hsc($this->getLang('managed_edit_warning')) . '</p>'
+            . '<ul class="vpsadmindoc-managed-warning__links">'
+            . '<li><span>' . hsc($this->getLang('managed_source_label')) . '</span> '
+            . $source . '</li>'
+            . '<li><span>' . hsc($this->getLang('managed_test_label')) . '</span> '
+            . $test . $selector . '</li>'
+            . '<li><span>' . hsc($this->getLang('managed_guide_label')) . '</span> '
+            . $guide . '</li>'
+            . '</ul></div></div>' . $event->data;
     }
 
     public static function insertAfterEdit(array $items, string $item): array
@@ -136,7 +155,13 @@ class action_plugin_vpsadmindoc extends ActionPlugin
 
     private function configurationWarning(): string
     {
-        return '<div class="vpsadmindoc-managed-warning" role="alert">'
-            . hsc($this->getLang('managed_config_error')) . '</div>';
+        return '<div class="vpsadmindoc-managed-warning vpsadmindoc-managed-warning--error"'
+            . ' role="alert" aria-labelledby="' . self::WARNING_TITLE_ID . '">'
+            . '<span class="vpsadmindoc-managed-warning__icon" aria-hidden="true">&#9888;</span>'
+            . '<div class="vpsadmindoc-managed-warning__body">'
+            . '<strong class="vpsadmindoc-managed-warning__title" id="'
+            . self::WARNING_TITLE_ID . '">' . hsc($this->getLang('managed_config_title'))
+            . '</strong><p>' . hsc($this->getLang('managed_config_error'))
+            . '</p></div></div>';
     }
 }

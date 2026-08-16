@@ -17,10 +17,15 @@ namespace dokuwiki\Extension {
                     'invalid_managed' => '[invalid managed-page marker]',
                     'managed_source_tool' => 'Source on GitHub',
                     'managed_source_link' => 'source on GitHub',
-                    'managed_test_link' => 'automated test',
+                    'managed_test_link' => 'test suite source',
                     'managed_guide_page' => 'information:kb',
                     'managed_guide_link' => 'Contributing to the Knowledge Base',
-                    'managed_edit_warning' => 'This page is managed in a repository and covered by an automated test. Manual edits made directly in the KB are not verified. See the %s, %s, and %s.',
+                    'managed_edit_title' => 'This page is managed in a repository',
+                    'managed_edit_warning' => 'Changes made only in this editor are not covered by the automated tests. The next repository release may overwrite them.',
+                    'managed_source_label' => 'Source:',
+                    'managed_test_label' => 'Tests:',
+                    'managed_guide_label' => 'Editing guide:',
+                    'managed_config_title' => 'Managed-page configuration error',
                     'managed_config_error' => 'The repository links for this page could not be created. Check the vpsadmindoc plugin configuration.',
                 ],
                 'cs' => [
@@ -28,10 +33,15 @@ namespace dokuwiki\Extension {
                     'invalid_managed' => '[neplatná značka stránky spravované v repozitáři]',
                     'managed_source_tool' => 'Zdroj na GitHubu',
                     'managed_source_link' => 'zdroj na GitHubu',
-                    'managed_test_link' => 'automatický test',
+                    'managed_test_link' => 'zdroj testů',
                     'managed_guide_page' => 'informace:jak_psat',
                     'managed_guide_link' => 'Jak přispívat do znalostní báze',
-                    'managed_edit_warning' => 'Tato stránka je spravována v repozitáři a pokryta automatickým testem. Ruční úpravy provedené přímo v KB nejsou ověřovány. Viz %s, %s a %s.',
+                    'managed_edit_title' => 'Stránka je spravovaná v repozitáři',
+                    'managed_edit_warning' => 'Na změny provedené pouze v tomto editoru se nevztahují automatické testy. Příští vydání z repozitáře je může přepsat.',
+                    'managed_source_label' => 'Zdroj:',
+                    'managed_test_label' => 'Testy:',
+                    'managed_guide_label' => 'Postup úprav:',
+                    'managed_config_title' => 'Chyba nastavení spravované stránky',
                     'managed_config_error' => 'Odkazy do repozitáře se nepodařilo vytvořit. Zkontroluj nastavení pluginu vpsadmindoc.',
                 ],
             ];
@@ -453,17 +463,20 @@ namespace {
     $contentEvent = new \dokuwiki\Extension\Event('<p>article</p>');
     $action->handleContentDisplay($contentEvent, null);
     assertContains('role="alert"', $contentEvent->data, 'editor warning is announced as an alert');
+    assertContains('aria-labelledby="vpsadmindoc-managed-warning-title"', $contentEvent->data, 'editor warning has an accessible title');
+    assertContains('aria-hidden="true">&#9888;</span>', $contentEvent->data, 'editor warning has a decorative warning icon');
     assertContains($masterManaged['source'], $contentEvent->data, 'editor warning links the source');
     assertContains($masterManaged['test'], $contentEvent->data, 'editor warning links the test source');
+    assertContains('<code class="vpsadmindoc-managed-warning__selector">kb/kvm#*</code>', $contentEvent->data, 'editor warning shows the runnable test selector');
     assertContains(
         '/doku.php?id=information%3Akb',
         $contentEvent->data,
         'editor warning links the English editing guide'
     );
     assertContains(
-        'Manual edits made directly in the KB are not verified.',
+        'Changes made only in this editor are not covered by the automated tests.',
         $contentEvent->data,
-        'editor warning explains that direct edits are unverified'
+        'editor warning explains the risk of direct edits'
     );
     assertNotContains('Do not edit', $contentEvent->data, 'editor warning does not prohibit editing');
     assertSame(3, substr_count($contentEvent->data, 'target="_blank"'), 'all editor links open in new tabs');
@@ -477,11 +490,11 @@ namespace {
     $GLOBALS['ACT'] = 'preview';
     $czechEvent = new \dokuwiki\Extension\Event('<p>náhled</p>');
     $action->handleContentDisplay($czechEvent, null);
-    assertContains('Tato stránka je spravována', $czechEvent->data, 'Czech preview warning is localized');
+    assertContains('Stránka je spravovaná', $czechEvent->data, 'Czech preview warning is localized');
     assertContains(
-        'Ruční úpravy provedené přímo v KB nejsou ověřovány.',
+        'Na změny provedené pouze v tomto editoru se nevztahují automatické testy.',
         $czechEvent->data,
-        'Czech preview explains that direct edits are unverified'
+        'Czech preview explains the risk of direct edits'
     );
     assertContains(
         '/doku.php?id=informace%3Ajak_psat',
@@ -495,8 +508,8 @@ namespace {
     $GLOBALS['ACT'] = 'locked';
     $configErrorEvent = new \dokuwiki\Extension\Event('<p>locked</p>');
     $action->handleContentDisplay($configErrorEvent, null);
-    assertContains('vpsadmindoc-managed-warning', $configErrorEvent->data, 'invalid configuration has a diagnostic');
-    assertContains('could not be created', $configErrorEvent->data, 'configuration diagnostic explains the error');
+    assertContains('vpsadmindoc-managed-warning--error', $configErrorEvent->data, 'invalid configuration has a prominent diagnostic');
+    assertContains('Managed-page configuration error', $configErrorEvent->data, 'configuration diagnostic has a clear title');
     assertNotContains('example.test', $configErrorEvent->data, 'invalid configuration is not reflected into HTML');
 
     $legacyTools = new \dokuwiki\Extension\Event([
