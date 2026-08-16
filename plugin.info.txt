@@ -1,7 +1,7 @@
 base   vpsadmindoc
 author vpsFree.cz
 email  support@vpsfree.cz
-date   2026-08-11
+date   2026-08-16
 name   vpsFree.cz documentation annotations
 desc   Annotates vpsAdmin navigation and links repository-managed pages to their canonical sources
 url    https://github.com/vpsfreecz/dokuwiki-plugin-vpsadmindoc

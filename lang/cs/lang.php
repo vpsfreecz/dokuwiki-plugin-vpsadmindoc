@@ -8,3 +8,4 @@ $lang['managed_test_link'] = 'automatický test';
 $lang['managed_guide_page'] = 'informace:jak_psat';
 $lang['managed_guide_link'] = 'Jak přispívat do znalostní báze';
 $lang['managed_edit_warning'] = 'Tato stránka je spravována v repozitáři a pokryta automatickým testem. Ruční úpravy provedené přímo v KB nejsou ověřovány. Viz %s, %s a %s.';
+$lang['managed_config_error'] = 'Odkazy do repozitáře se nepodařilo vytvořit. Zkontroluj nastavení pluginu vpsadmindoc.';

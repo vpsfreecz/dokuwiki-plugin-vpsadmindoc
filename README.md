@@ -23,22 +23,41 @@ language mapping:
 
 ```text
 <kb-managed
-  source="https://github.com/vpsfreecz/vpsfree-kb-contracts/blob/master/contract/pages/manuals-vps-kvm.txt"
-  test="https://github.com/vpsfreecz/vpsfree-kb-contracts/blob/master/tests/suite/kb/kvm.nix"
+  source="contract/pages/manuals-vps-kvm.txt"
+  test="kb/kvm#*"
 />
 ```
 
-The marker emits no XHTML. Its validated GitHub links are stored in page
-metadata and used to add a **Source on GitHub** page tool. DokuWiki editor and
-preview views also show a localized notice with links to the source, automated
-test, and local editing guide. Repository links open in a new tab, as does the
-editing guide so that an open edit form is preserved. The plugin never fetches
-repository content at runtime.
+The `source` value is a path within the configured repository. The `test` value
+is a test-runner selector ending in `#*`; the example selects every script in
+the `kb/kvm` suite. The plugin links that selector to
+`tests/suite/kb/kvm.nix` and displays the runnable selector in the editor
+warning.
 
-Only HTTPS `github.com` blob links are accepted. Invalid markers render a
-visible diagnostic and do not create toolbar or editor links. The standalone
-article contract checker verifies that a page has exactly one marker and that
-its links match the registered source and test.
+Configure these DokuWiki plugin settings:
+
+- `managed_repository_url`: an HTTPS GitHub repository URL, such as
+  `https://github.com/vpsfreecz/vpsfree-kb-contracts`
+- `managed_repository_ref`: `master` or a lowercase 40-character commit hash
+- `managed_repository_ref_file`: an optional absolute path to a file containing
+  the revision
+
+When a revision file is configured, it takes precedence over the static
+revision. The plugin reads it on every request, so staging can switch commits
+without a plugin deployment or container restart. The staging configuration
+uses `/private/kb-staging/managed-repository.ref`.
+
+The marker emits no article XHTML. The plugin uses the resolved GitHub links
+for the **Source on GitHub** page tool and for a localized warning in edit,
+preview, source, and locked views. The warning links to the source, test suite,
+and editing guide. All three links open in a new tab to preserve the open edit
+form. The plugin does not fetch repository content.
+
+Legacy markers containing two full GitHub blob URLs remain supported during
+the rollout. Invalid markers render a visible diagnostic. Invalid repository
+configuration produces a visible warning in editor views and does not create a
+page tool. The standalone article contract checker verifies that each managed
+page has one marker with its registered source and test selector.
 
 ## Development
 

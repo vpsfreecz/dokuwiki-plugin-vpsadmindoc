@@ -8,3 +8,4 @@ $lang['managed_test_link'] = 'automated test';
 $lang['managed_guide_page'] = 'information:kb';
 $lang['managed_guide_link'] = 'Contributing to the Knowledge Base';
 $lang['managed_edit_warning'] = 'This page is managed in a repository and covered by an automated test. Manual edits made directly in the KB are not verified. See the %s, %s, and %s.';
+$lang['managed_config_error'] = 'The repository links for this page could not be created. Check the vpsadmindoc plugin configuration.';

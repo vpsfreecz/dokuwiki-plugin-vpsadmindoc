@@ -55,8 +55,14 @@ class action_plugin_vpsadmindoc extends ActionPlugin
             return;
         }
 
-        $managed = $this->managedPage();
+        $marker = $this->managedMarker();
+        if ($marker === null) {
+            return;
+        }
+
+        $managed = $this->resolveManagedPage($marker);
         if ($managed === null) {
+            $event->data = $this->configurationWarning() . $event->data;
             return;
         }
 
@@ -97,6 +103,12 @@ class action_plugin_vpsadmindoc extends ActionPlugin
 
     private function managedPage(): ?array
     {
+        $marker = $this->managedMarker();
+        return $marker === null ? null : $this->resolveManagedPage($marker);
+    }
+
+    private function managedMarker(): ?array
+    {
         global $ID;
 
         if (!$ID) {
@@ -110,5 +122,21 @@ class action_plugin_vpsadmindoc extends ActionPlugin
 
         $managed = reset($markers);
         return VpsAdminDocManagedPage::isValid($managed) ? $managed : null;
+    }
+
+    private function resolveManagedPage(array $managed): ?array
+    {
+        return VpsAdminDocManagedRepository::resolve(
+            $managed,
+            (string)$this->getConf('managed_repository_url'),
+            (string)$this->getConf('managed_repository_ref'),
+            (string)$this->getConf('managed_repository_ref_file')
+        );
+    }
+
+    private function configurationWarning(): string
+    {
+        return '<div class="vpsadmindoc-managed-warning" role="alert">'
+            . hsc($this->getLang('managed_config_error')) . '</div>';
     }
 }
