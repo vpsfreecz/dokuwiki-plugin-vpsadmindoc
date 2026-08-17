@@ -21,7 +21,7 @@ namespace dokuwiki\Extension {
                     'managed_guide_page' => 'information:kb',
                     'managed_guide_link' => 'Contributing to the Knowledge Base',
                     'managed_edit_title' => 'This page is managed in a repository',
-                    'managed_edit_warning' => 'Changes made only in this editor are not covered by the automated tests. The next repository release may overwrite them.',
+                    'managed_edit_warning' => 'Automated tests do not cover changes made only in this editor.',
                     'managed_source_label' => 'Source:',
                     'managed_test_label' => 'Tests:',
                     'managed_guide_label' => 'Editing guide:',
@@ -37,7 +37,7 @@ namespace dokuwiki\Extension {
                     'managed_guide_page' => 'informace:jak_psat',
                     'managed_guide_link' => 'Jak přispívat do znalostní báze',
                     'managed_edit_title' => 'Stránka je spravovaná v repozitáři',
-                    'managed_edit_warning' => 'Na změny provedené pouze v tomto editoru se nevztahují automatické testy. Příští vydání z repozitáře je může přepsat.',
+                    'managed_edit_warning' => 'Změny provedené pouze v tomto editoru se netestují automaticky.',
                     'managed_source_label' => 'Zdroj:',
                     'managed_test_label' => 'Testy:',
                     'managed_guide_label' => 'Postup úprav:',
@@ -474,10 +474,11 @@ namespace {
         'editor warning links the English editing guide'
     );
     assertContains(
-        'Changes made only in this editor are not covered by the automated tests.',
+        'Automated tests do not cover changes made only in this editor.',
         $contentEvent->data,
-        'editor warning explains the risk of direct edits'
+        'editor warning explains test coverage for direct edits'
     );
+    assertNotContains('overwrite', $contentEvent->data, 'editor warning does not imply an accidental overwrite');
     assertNotContains('Do not edit', $contentEvent->data, 'editor warning does not prohibit editing');
     assertSame(3, substr_count($contentEvent->data, 'target="_blank"'), 'all editor links open in new tabs');
     assertSame(
@@ -492,10 +493,11 @@ namespace {
     $action->handleContentDisplay($czechEvent, null);
     assertContains('Stránka je spravovaná', $czechEvent->data, 'Czech preview warning is localized');
     assertContains(
-        'Na změny provedené pouze v tomto editoru se nevztahují automatické testy.',
+        'Změny provedené pouze v tomto editoru se netestují automaticky.',
         $czechEvent->data,
-        'Czech preview explains the risk of direct edits'
+        'Czech preview explains test coverage for direct edits'
     );
+    assertNotContains('přepsat', $czechEvent->data, 'Czech preview does not imply an accidental overwrite');
     assertContains(
         '/doku.php?id=informace%3Ajak_psat',
         $czechEvent->data,
